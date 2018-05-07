@@ -1,12 +1,9 @@
 import io
 
-import numpy as np
-
-import conf
-import tools
+from tools.dataTools import *
 
 # load data
-data_file = io.open(conf.standardData_file, encoding="utf8")
+data_file = io.open(conf.standard_data_file, encoding="utf8")
 lines = data_file.readlines()
 
 words_data = []
@@ -16,7 +13,7 @@ for line in lines:
 	word = str(elements[0])
 	accent = int(elements[1])
 	
-	word_data = tools.parse_word(word)
+	word_data = cook_data_word(word)
 	if word_data is None:
 		continue
 	
@@ -25,5 +22,5 @@ for line in lines:
 
 words_data = np.array(words_data)
 accentsData = np.array(accentsData)
-np.savez(conf.cookedData_file, words=words_data, accents=accentsData)
+np.savez(conf.cooked_data_file, words=words_data, accents=accentsData)
 print("cookedData saved")
