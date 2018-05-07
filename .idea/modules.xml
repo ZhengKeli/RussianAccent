@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RussianAccent.iml" filepath="$PROJECT_DIR$/RussianAccent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/nerveNetwork/nerveNetwork.iml" filepath="$PROJECT_DIR$/nerveNetwork/nerveNetwork.iml" />
       <module fileurl="file://$PROJECT_DIR$/rawData/rawData.iml" filepath="$PROJECT_DIR$/rawData/rawData.iml" />
     </modules>
   </component>
