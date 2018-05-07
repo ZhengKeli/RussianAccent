@@ -69,7 +69,6 @@ def create_graph(sess):
 def save_graph(sess, graph_file):
 	for dir_path in [conf.root_dir, conf.log_dir, conf.graph_dir]:
 		os.makedirs(dir_path, exist_ok=True)
-	sess = tf.get_default_session()
 	tf.train.Saver().save(sess, graph_file)
 	print("graph saved")
 
@@ -80,18 +79,29 @@ def load_graph(sess, meta_file, graph_dir):
 
 
 def train_graph(sess, words_data, accents_data, batch_size=10, repeat_count=1000):
-	summary_writer = tf.summary.FileWriter(conf.log_dir)
-	summary_loss = tf.summary.scalar("summary_loss", sess.graph.get_tensor_by_name("train/loss_mean:0"))
 	for i in range(repeat_count):
 		batch_index = np.random.randint(len(words_data), size=[batch_size])
 		val_word = words_data.take(batch_index, axis=0)
 		val_accent = accents_data.take(batch_index, axis=0)
-		val_training, val_loss, val_training_step, val_summary_loss = sess.run(
-			["train/training", "train/loss:0", "train/training_step:0", summary_loss],
+		val_training, val_loss, val_training_step = sess.run(
+			["train/training", "train/loss:0", "train/training_step:0"],
 			{"input/word:0": val_word, "input/accent:0": val_accent, "train/training_rate:0": 0.002}
 		)
 		print("[", val_training_step, "] train: loss=", np.mean(val_loss))
-		summary_writer.add_summary(val_summary_loss, val_training_step)
+	print("trained", repeat_count, "times")
+
+
+def train_graph_with_summary(sess, words_data, accents_data, summary_writer, summary_op, repeat_count=1000, batch_size=10):
+	for i in range(repeat_count):
+		batch_index = np.random.randint(len(words_data), size=[batch_size])
+		val_word = words_data.take(batch_index, axis=0)
+		val_accent = accents_data.take(batch_index, axis=0)
+		val_training, val_loss, val_training_step, val_summary_op = sess.run(
+			["train/training", "train/loss:0", "train/training_step:0", summary_op],
+			{"input/word:0": val_word, "input/accent:0": val_accent, "train/training_rate:0": 0.002}
+		)
+		print("[", val_training_step, "] train: loss=", np.mean(val_loss))
+		summary_writer.add_summary(val_summary_op, val_training_step)
 	print("trained", repeat_count, "times")
 
 

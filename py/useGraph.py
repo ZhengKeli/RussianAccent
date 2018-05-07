@@ -1,8 +1,6 @@
 from contexts.graphContext import *
 from tools.dataTools import cook_data_words
 
-load_graph()
-
 while True:
 	# input words
 	words = input("Type the word(s):\n")
