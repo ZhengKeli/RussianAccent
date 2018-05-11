@@ -1,5 +1,8 @@
+import sys
+
+import tensorboard.main
+
 import conf
 
-command = "tensorboard --logdir " + conf.log_dir
-print(command)
-
+sys.argv += ["--logdir", conf.log_dir]
+tensorboard.main.run_main()
