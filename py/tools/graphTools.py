@@ -45,7 +45,8 @@ def create_graph(sess):
 	
 	with tf.name_scope("analyzer"):
 		analyzer_cell = tf.layers.Dense(32, tf.nn.relu)
-		analyzer_inputs = [tf.multiply(forward_rnn_outputs[cycle_id], backward_rnn_outputs[cycle_id]) for cycle_id in range(word_length)]
+		analyzer_inputs = [tf.concat([forward_rnn_outputs[cycle_id], backward_rnn_outputs[cycle_id]], -1) for cycle_id in
+		                   range(word_length)]
 		analyzer_outputs = [analyzer_cell(analyzer_input) for analyzer_input in analyzer_inputs]
 		analyzer_outputs = [tf.reduce_mean(analyzer_output, -1) for analyzer_output in analyzer_outputs]
 		

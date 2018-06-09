@@ -1,7 +1,7 @@
 import os
 
 # file conf
-version_name = "v2"
+version_name = "v2.2"
 root_dir = "..\\"
 
 train_data_dir = os.path.join(root_dir, "trainData")
