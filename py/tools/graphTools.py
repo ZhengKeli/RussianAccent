@@ -45,8 +45,10 @@ def create_graph(sess):
 	
 	with tf.name_scope("analyzer"):
 		analyzer_cell = tf.layers.Dense(32, tf.nn.relu)
-		analyzer_inputs = [tf.concat([forward_rnn_outputs[cycle_id], backward_rnn_outputs[cycle_id]], -1) for cycle_id in
-		                   range(word_length)]
+		analyzer_inputs = [
+			tf.concat([forward_rnn_outputs[cycle_id], backward_rnn_outputs[cycle_id]], -1)
+			for cycle_id in range(word_length)
+		]
 		analyzer_outputs = [analyzer_cell(analyzer_input) for analyzer_input in analyzer_inputs]
 		analyzer_outputs = [tf.reduce_mean(analyzer_output, -1) for analyzer_output in analyzer_outputs]
 		
@@ -67,11 +69,14 @@ def create_graph(sess):
 	sess.run(tf.global_variables_initializer())
 
 
+def log_graph_shape(sess, log_dir):
+	os.makedirs(log_dir)
+	tf.summary.FileWriter(log_dir).add_graph(sess.graph)
+
+
 def save_graph(sess, graph_file):
-	for dir_path in [conf.root_dir, conf.log_dir, conf.graph_dir]:
-		os.makedirs(dir_path, exist_ok=True)
+	os.makedirs(os.path.dirname(graph_file))
 	tf.train.Saver().save(sess, graph_file)
-	print("graph saved")
 
 
 def load_graph(sess, meta_file, graph_dir):
@@ -79,27 +84,32 @@ def load_graph(sess, meta_file, graph_dir):
 	print("graph loaded")
 
 
-def train_graph(sess, words_data, accents_data, batch_size=10, repeat_count=1000):
+def train_graph(
+	sess, words_data, accents_data,
+	batch_size=10, repeat_count=1000, training_rate=0.002):
 	for i in range(repeat_count):
 		batch_index = np.random.randint(len(words_data), size=[batch_size])
 		val_word = words_data.take(batch_index, axis=0)
 		val_accent = accents_data.take(batch_index, axis=0)
 		val_training, val_loss, val_training_step = sess.run(
 			["train/training", "train/loss:0", "train/training_step:0"],
-			{"input/word:0": val_word, "input/accent:0": val_accent, "train/training_rate:0": 0.002}
+			{"input/word:0": val_word, "input/accent:0": val_accent, "train/training_rate:0": training_rate}
 		)
 		print("[", val_training_step, "] train: loss=", np.mean(val_loss))
 	print("trained", repeat_count, "times")
 
 
-def train_graph_with_summary(sess, words_data, accents_data, summary_writer, summary_op, repeat_count=1000, batch_size=10):
+def train_graph_with_summary(
+	sess, words_data, accents_data,
+	summary_writer, summary_op,
+	repeat_count=1000, batch_size=10, training_rate=0.002):
 	for i in range(repeat_count):
 		batch_index = np.random.randint(len(words_data), size=[batch_size])
 		val_word = words_data.take(batch_index, axis=0)
 		val_accent = accents_data.take(batch_index, axis=0)
 		val_training, val_loss, val_training_step, val_summary_op = sess.run(
 			["train/training", "train/loss:0", "train/training_step:0", summary_op],
-			{"input/word:0": val_word, "input/accent:0": val_accent, "train/training_rate:0": 0.002}
+			{"input/word:0": val_word, "input/accent:0": val_accent, "train/training_rate:0": training_rate}
 		)
 		print("[", val_training_step, "] train: loss=", np.mean(val_loss))
 		summary_writer.add_summary(val_summary_op, val_training_step)
@@ -115,6 +125,17 @@ def test_graph(sess, words_data, accents_data, test_count=200):
 		"input/accent:0": val_accent,
 	})
 	print("[", val_training_step, "] test: correct_rate=", val_correct_rate * 100, "%")
+
+
+def test_graph_with_summary(sess, words_data, accents_data, summary_writer, summary_op, test_count=200):
+	batch_index = np.random.randint(len(words_data), size=[test_count])
+	val_word = words_data.take(batch_index, axis=0)
+	val_accent = accents_data.take(batch_index, axis=0)
+	val_correct_rate, val_training_step, val_summary_op = sess.run(
+		["train/correct_rate:0", "train/training_step:0", summary_op],
+		{"input/word:0": val_word, "input/accent:0": val_accent, })
+	print("[", val_training_step, "] test: correct_rate=", val_correct_rate * 100, "%")
+	summary_writer.add_summary(val_summary_op, val_training_step)
 
 
 def use_graph(sess, words_data):
